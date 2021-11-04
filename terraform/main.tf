@@ -84,7 +84,7 @@ resource "azurerm_logic_app_standard" "example" {
     "FUNCTIONS_WORKER_RUNTIME"      = "node"
     "WEBSITE_NODE_DEFAULT_VERSION" = "~12"
   }
-  identity = {
+  identity {
     type = "SystemAssigned"
   }
   tags = local.tags
