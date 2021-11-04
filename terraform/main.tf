@@ -65,10 +65,12 @@ resource "azurerm_app_service_plan" "asp" {
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
   kind                = "elastic"
+  reserved            = false
     sku {
     tier = "WorkflowStandard"
     size = "WS1"
   }
+  tags = local.tags
 }
 
 resource "azurerm_logic_app_standard" "example" {
@@ -78,4 +80,5 @@ resource "azurerm_logic_app_standard" "example" {
   app_service_plan_id        = azurerm_app_service_plan.asp.id
   storage_account_name       = azurerm_storage_account.sa.name
   storage_account_access_key = azurerm_storage_account.sa.primary_access_key
+  tags = local.tags
 }
