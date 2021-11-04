@@ -80,5 +80,8 @@ resource "azurerm_logic_app_standard" "example" {
   app_service_plan_id        = azurerm_app_service_plan.asp.id
   storage_account_name       = azurerm_storage_account.sa.name
   storage_account_access_key = azurerm_storage_account.sa.primary_access_key
+  app_settings = {
+    "WEBSITE_NODE_DEFAULT_VERSION" = "~12"
+  }
   tags = local.tags
 }
