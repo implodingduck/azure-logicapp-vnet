@@ -48,6 +48,15 @@ data "azurerm_log_analytics_workspace" "default" {
   resource_group_name = "DefaultResourceGroup-EUS"
 } 
 
+resource "azurerm_virtual_network" "default" {
+  name                = "vnet-${local.func_name}-${local.loc_for_naming}"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  address_space       = ["10.4.0.0/24"]
+
+  tags = local.tags
+}
+
 
 resource "azurerm_storage_account" "sa" {
   name                     = "sa${local.func_name}"
