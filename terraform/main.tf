@@ -81,8 +81,13 @@ resource "azurerm_logic_app_standard" "example" {
   storage_account_name       = azurerm_storage_account.sa.name
   storage_account_access_key = azurerm_storage_account.sa.primary_access_key
   app_settings = {
-    "FUNCTION_WORKER_RUNTIME"      = "node"
+    "FUNCTIONS_WORKER_RUNTIME"      = "node"
     "WEBSITE_NODE_DEFAULT_VERSION" = "~12"
+  }
+  identity = {
+    type = "SystemAssigned"
   }
   tags = local.tags
 }
+
+
