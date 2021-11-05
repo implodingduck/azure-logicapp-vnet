@@ -123,9 +123,12 @@ resource "azurerm_storage_account" "sa" {
 }
 
 resource "azurerm_storage_account_network_rules" "fw" {
+  depends_on = [
+    azurerm_app_service_virtual_network_swift_connection.example
+  ]
   storage_account_id = azurerm_storage_account.sa.id
 
-  default_action             = "Allow"
+  default_action             = "Deny"
 
   virtual_network_subnet_ids = [azurerm_subnet.logicapps.id]
 }
