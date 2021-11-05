@@ -156,7 +156,7 @@ resource "azurerm_logic_app_standard" "example" {
   app_settings = {
     "FUNCTIONS_WORKER_RUNTIME"     = "node"
     "WEBSITE_NODE_DEFAULT_VERSION" = "~12"
-    "CONTENT_OVERVNET"             = "1"
+    "WEBSITE_CONTENTOVERVNET"      = "1"
     "WEBSITE_VNET_ROUTE_ALL"       = "1"
 
   }
