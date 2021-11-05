@@ -64,6 +64,7 @@ resource "azurerm_subnet" "pe" {
   address_prefixes      = ["10.4.0.0/26"]
 
   enforce_private_link_endpoint_network_policies = true
+
 }
 
 resource "azurerm_subnet" "logicapps" {
@@ -71,6 +72,14 @@ resource "azurerm_subnet" "logicapps" {
   resource_group_name   = azurerm_virtual_network.default.resource_group_name
   virtual_network_name  = azurerm_virtual_network.default.name
   address_prefixes      = ["10.4.0.64/26"]
+  service_endpoints = [
+    "Microsoft.Web",
+    "Microsoft.Storage"
+  ]
+  delegation {
+    name = "Microsoft.Web/serverFarms"
+  }
+  
 
  
 }
@@ -112,7 +121,7 @@ resource "azurerm_storage_account" "sa" {
 
 resource "azurerm_storage_account_network_rules" "fw" {
   resource_group_name  = azurerm_resource_group.rg.name
-  storage_account_name = azurerm_storage_account.sa.name
+  storage_account_id = azurerm_storage_account.sa.id
 
   default_action             = "Allow"
 
