@@ -78,7 +78,7 @@ resource "azurerm_subnet" "logicapps" {
   ]
   delegation {
     name = "serverfarm-delegation"
-    service_delegation = {
+    service_delegation {
       name = "Microsoft.Web/serverFarms"
     }
   }
