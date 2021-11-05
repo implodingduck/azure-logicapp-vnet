@@ -77,7 +77,10 @@ resource "azurerm_subnet" "logicapps" {
     "Microsoft.Storage"
   ]
   delegation {
-    name = "Microsoft.Web/serverFarms"
+    name = "serverfarm-delegation"
+    service_delegation = {
+      name = "Microsoft.Web/serverFarms"
+    }
   }
   
 
