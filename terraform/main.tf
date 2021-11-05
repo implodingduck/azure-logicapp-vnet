@@ -57,6 +57,47 @@ resource "azurerm_virtual_network" "default" {
   tags = local.tags
 }
 
+resource "azurerm_subnet" "pe" {
+  name                  = "snet-privateendpoints-${local.loc_for_naming}"
+  resource_group_name   = azurerm_virtual_network.default.resource_group_name
+  virtual_network_name  = azurerm_virtual_network.default.name
+  address_prefixes      = ["10.4.0.0/26"]
+
+  enforce_private_link_endpoint_network_policies = true
+}
+
+resource "azurerm_subnet" "logicapps" {
+  name                  = "snet-logicapps-${local.loc_for_naming}"
+  resource_group_name   = azurerm_virtual_network.default.resource_group_name
+  virtual_network_name  = azurerm_virtual_network.default.name
+  address_prefixes      = ["10.4.0.64/26"]
+
+ 
+}
+
+
+resource "azurerm_private_dns_zone" "blob" {
+  name                      = "privatelink.blob.core.windows.net"
+  resource_group_name       = azurerm_resource_group.rg.name
+}
+
+resource "azurerm_private_endpoint" "pe" {
+  name                = "pe-sa${local.func_name}"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  subnet_id           = azurerm_subnet.pe.id
+
+  private_service_connection {
+    name                           = "pe-connection-sa${local.func_name}"
+    private_connection_resource_id = azurerm_storage_account.sa.id
+    is_manual_connection           = false
+    subresource_names              = ["blob"]
+  }
+  private_dns_zone_group {
+    name                 = azurerm_private_dns_zone.blob.name
+    private_dns_zone_ids = [azurerm_private_dns_zone.blob.id]
+  }
+}
 
 resource "azurerm_storage_account" "sa" {
   name                     = "sa${local.func_name}"
