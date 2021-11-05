@@ -110,6 +110,15 @@ resource "azurerm_storage_account" "sa" {
   tags = local.tags
 }
 
+resource "azurerm_storage_account_network_rules" "fw" {
+  resource_group_name  = azurerm_resource_group.rg.name
+  storage_account_name = azurerm_storage_account.sa.name
+
+  default_action             = "Allow"
+
+  virtual_network_subnet_ids = [azurerm_subnet.logicapps.id]
+}
+
 resource "azurerm_app_service_plan" "asp" {
   name                = "asp-${local.func_name}"
   resource_group_name = azurerm_resource_group.rg.name
@@ -141,3 +150,7 @@ resource "azurerm_logic_app_standard" "example" {
 }
 
 
+resource "azurerm_app_service_virtual_network_swift_connection" "example" {
+  app_service_id = azurerm_logic_app_standard.example.id
+  subnet_id      = azurerm_subnet.logicapps.id
+}
