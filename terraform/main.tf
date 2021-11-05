@@ -123,7 +123,6 @@ resource "azurerm_storage_account" "sa" {
 }
 
 resource "azurerm_storage_account_network_rules" "fw" {
-  resource_group_name  = azurerm_resource_group.rg.name
   storage_account_id = azurerm_storage_account.sa.id
 
   default_action             = "Allow"
