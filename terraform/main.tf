@@ -158,7 +158,7 @@ resource "azurerm_logic_app_standard" "example" {
     "WEBSITE_NODE_DEFAULT_VERSION" = "~12"
     "WEBSITE_CONTENTOVERVNET"      = "1"
     "WEBSITE_VNET_ROUTE_ALL"       = "1"
-
+    "SQL_PASSWORD"                 = random_password.password.result
   }
   identity {
     type = "SystemAssigned"
@@ -170,4 +170,82 @@ resource "azurerm_logic_app_standard" "example" {
 resource "azurerm_app_service_virtual_network_swift_connection" "example" {
   app_service_id = azurerm_logic_app_standard.example.id
   subnet_id      = azurerm_subnet.logicapps.id
+}
+
+resource "azurerm_key_vault" "kv" {
+  name                       = "${local.func_name}-kv"
+  location                   = azurerm_resource_group.rg.location
+  resource_group_name        = azurerm_resource_group.rg.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+  purge_protection_enabled = false
+
+
+    
+  tags = local.tags
+}
+
+resource "azurerm_key_vault_access_policy" "client-config" {
+  key_vault_id = azurerm_key_vault.kv.id
+  tenant_id = data.azurerm_client_config.current.tenant_id
+  object_id = data.azurerm_client_config.current.object_id
+
+  key_permissions = [
+    "create",
+    "get",
+    "purge",
+    "recover",
+    "delete"
+  ]
+
+  secret_permissions = [
+    "set",
+    "purge",
+    "get",
+    "list",
+    "delete"
+  ]
+
+  certificate_permissions = [
+    "purge"
+  ]
+
+  storage_permissions = [
+    "purge"
+  ]
+}
+
+resource "azurerm_key_vault_access_policy" "la" {
+  key_vault_id = azurerm_key_vault.kv.id
+  tenant_id = data.azurerm_client_config.current.tenant_id
+  object_id = azurerm_logic_app_standard.example.identity.principal_id
+  secret_permissions = [
+    "get",
+    "list"
+  ]
+}
+
+resource "random_password" "password" {
+  length           = 16
+  special          = true
+  override_special = "_%@"
+}
+
+resource "azurerm_key_vault_secret" "dbpassword" {
+  name         = "dbpassword"
+  value        = random_password.password.result
+  key_vault_id = azurerm_key_vault.kv.id
+}
+
+resource "azurerm_mssql_server" "db" {
+  name                         = "${local.func_name}-server"
+  resource_group_name          = azurerm_resource_group.rg.name
+  location                     = azurerm_resource_group.rg.location
+  version                      = "12.0"
+  administrator_login          = "sqladmin"
+  administrator_login_password = random_password.password.result
+  minimum_tls_version          = "1.2"
+
+  tags = local.tags
 }
