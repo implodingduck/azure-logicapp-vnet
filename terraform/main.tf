@@ -234,6 +234,9 @@ resource "random_password" "password" {
 }
 
 resource "azurerm_key_vault_secret" "dbpassword" {
+  depends_on = [
+    azurerm_key_vault_access_policy.client-config
+  ]
   name         = "dbpassword"
   value        = random_password.password.result
   key_vault_id = azurerm_key_vault.kv.id
