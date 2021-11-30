@@ -278,10 +278,10 @@ resource "azurerm_mssql_firewall_rule" "vnet" {
   end_ip_address   = "10.4.0.255"
 }
 
-resource "azurerm_mssql_firewall_rule" "la" {
-  for_each = toset(azurerm_logic_app_standard.example.outbound_ip_addresses)
-  name             = "la${each.key}"
-  server_id        = azurerm_mssql_server.db.id
-  start_ip_address = each.key
-  end_ip_address   = each.key
-}
+# resource "azurerm_mssql_firewall_rule" "la" {
+#   for_each = toset(azurerm_logic_app_standard.example.outbound_ip_addresses)
+#   name             = "la${each.key}"
+#   server_id        = azurerm_mssql_server.db.id
+#   start_ip_address = each.key
+#   end_ip_address   = each.key
+# }
