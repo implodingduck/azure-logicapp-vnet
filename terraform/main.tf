@@ -161,6 +161,11 @@ resource "azurerm_logic_app_standard" "example" {
     "WEBSITE_VNET_ROUTE_ALL"       = "1"
     "SQL_PASSWORD"                 = random_password.password.result
   }
+  connection_string {
+    name = "sqltest"
+    type = "SQLServer"
+    value = "@Microsoft.KeyVault(VaultName=${azurerm_key_vault.kv.name};SecretName=${azurerm_key_vault_secret.dbconnectionstring.name})"
+  }
   identity {
     type = "SystemAssigned"
   }
@@ -242,6 +247,15 @@ resource "azurerm_key_vault_secret" "dbpassword" {
   key_vault_id = azurerm_key_vault.kv.id
 }
 
+resource "azurerm_key_vault_secret" "dbconnectionstring" {
+  depends_on = [
+    azurerm_key_vault_access_policy.client-config
+  ]
+  name         = "dbconnectionstring"
+  value        = "Server=tcp:${azurerm_mssql_server.db.fully_qualified_domain_name},1433;Initial Catalog=${azurerm_mssql_database.db.name};Persist Security Info=False;User ID=sqladmin;Password=${random_password.password.result};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+  key_vault_id = azurerm_key_vault.kv.id
+}
+
 resource "azurerm_mssql_server" "db" {
   name                         = "${local.func_name}-server"
   resource_group_name          = azurerm_resource_group.rg.name
@@ -281,10 +295,9 @@ resource "azurerm_mssql_firewall_rule" "vnet" {
   end_ip_address   = "10.4.0.255"
 }
 
-# resource "azurerm_mssql_firewall_rule" "la" {
-#   for_each = toset(azurerm_logic_app_standard.example.outbound_ip_addresses)
-#   name             = "la${each.key}"
-#   server_id        = azurerm_mssql_server.db.id
-#   start_ip_address = each.key
-#   end_ip_address   = each.key
-# }
+resource "azurerm_mssql_firewall_rule" "allthethings" {
+  name             = "allthethings"
+  server_id        = azurerm_mssql_server.db.id
+  start_ip_address = "0.0.0.0"
+  end_ip_address   = "255.255.255.255"
+}
