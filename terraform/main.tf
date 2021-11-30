@@ -162,10 +162,11 @@ resource "azurerm_logic_app_standard" "example" {
     "SQL_PASSWORD"                 = random_password.password.result
     "sql_connectionString"         = "@Microsoft.KeyVault(VaultName=${azurerm_key_vault.kv.name};SecretName=${azurerm_key_vault_secret.dbconnectionstring.name})"
   }
+
   connection_string {
-    name = "sqltest"
+    name = "testsql"
     type = "SQLServer"
-    value = "@Microsoft.KeyVault(VaultName=${azurerm_key_vault.kv.name};SecretName=${azurerm_key_vault_secret.dbconnectionstring.name})"
+    value = "sql_connectionString"
   }
   identity {
     type = "SystemAssigned"
