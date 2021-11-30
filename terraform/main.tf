@@ -163,11 +163,6 @@ resource "azurerm_logic_app_standard" "example" {
     "sql_connectionString"         = "@Microsoft.KeyVault(VaultName=${azurerm_key_vault.kv.name};SecretName=${azurerm_key_vault_secret.dbconnectionstring.name})"
   }
 
-  connection_string {
-    name = "testsql"
-    type = "SQLServer"
-    value = "sql_connectionString"
-  }
   identity {
     type = "SystemAssigned"
   }
