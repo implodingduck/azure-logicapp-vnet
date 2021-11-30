@@ -160,6 +160,7 @@ resource "azurerm_logic_app_standard" "example" {
     "WEBSITE_CONTENTOVERVNET"      = "1"
     "WEBSITE_VNET_ROUTE_ALL"       = "1"
     "SQL_PASSWORD"                 = random_password.password.result
+    "sql_connectionString"         = "@Microsoft.KeyVault(VaultName=${azurerm_key_vault.kv.name};SecretName=${azurerm_key_vault_secret.dbconnectionstring.name})"
   }
   connection_string {
     name = "sqltest"
