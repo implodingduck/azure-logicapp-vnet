@@ -93,6 +93,7 @@ resource "azurerm_private_dns_zone" "blob" {
   resource_group_name       = azurerm_resource_group.rg.name
 }
 
+
 resource "azurerm_private_endpoint" "pe" {
   name                = "pe-sa${local.func_name}"
   location            = azurerm_resource_group.rg.location
@@ -248,4 +249,39 @@ resource "azurerm_mssql_server" "db" {
   minimum_tls_version          = "1.2"
 
   tags = local.tags
+}
+
+resource "azurerm_mssql_database" "db" {
+  name                        = "${local.func_name}db"
+  server_id                   = azurerm_mssql_server.db.id
+  max_size_gb                 = 40
+  auto_pause_delay_in_minutes = -1
+  min_capacity                = 1
+  sku_name                    = "GP_S_Gen5_1"
+  tags = local.tags
+  short_term_retention_policy {
+    retention_days = 7
+  }
+}
+
+resource "azurerm_mssql_firewall_rule" "azureservices" {
+  name             = "azureservices"
+  server_id        = azurerm_mssql_server.db.id
+  start_ip_address = "0.0.0.0"
+  end_ip_address   = "0.0.0.0"
+}
+
+resource "azurerm_mssql_firewall_rule" "vnet" {
+  name             = "vnet"
+  server_id        = azurerm_mssql_server.db.id
+  start_ip_address = "10.4.0.0"
+  end_ip_address   = "10.4.0.255"
+}
+
+resource "azurerm_mssql_firewall_rule" "la" {
+  for_each = toset(azurerm_logic_app_standard.la.outbound_ip_addresses)
+  name             = "la${each.key}"
+  server_id        = azurerm_mssql_server.db.id
+  start_ip_address = each.key
+  end_ip_address   = each.key
 }
