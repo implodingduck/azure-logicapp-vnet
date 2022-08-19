@@ -195,27 +195,27 @@ resource "azurerm_key_vault_access_policy" "client-config" {
   object_id = data.azurerm_client_config.current.object_id
 
   key_permissions = [
-    "create",
-    "get",
-    "purge",
-    "recover",
-    "delete"
+    "Create",
+    "Get",
+    "Purge",
+    "Recover",
+    "Delete"
   ]
 
   secret_permissions = [
-    "set",
-    "purge",
-    "get",
-    "list",
-    "delete"
+    "Set",
+    "Purge",
+    "Get",
+    "List",
+    "Delete"
   ]
 
   certificate_permissions = [
-    "purge"
+    "Purge"
   ]
 
   storage_permissions = [
-    "purge"
+    "Purge"
   ]
 }
 
