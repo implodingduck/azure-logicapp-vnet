@@ -224,8 +224,8 @@ resource "azurerm_key_vault_access_policy" "la" {
   tenant_id = data.azurerm_client_config.current.tenant_id
   object_id = azurerm_logic_app_standard.example.identity.0.principal_id
   secret_permissions = [
-    "get",
-    "list"
+    "Get",
+    "List"
   ]
 }
 
