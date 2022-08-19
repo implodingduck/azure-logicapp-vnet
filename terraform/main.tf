@@ -139,7 +139,7 @@ resource "azurerm_app_service_plan" "asp" {
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
   kind                = "elastic"
-  reserved            = false
+  reserved            = true
     sku {
     tier = "WorkflowStandard"
     size = "WS1"
