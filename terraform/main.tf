@@ -139,7 +139,7 @@ resource "azurerm_app_service_plan" "asp" {
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
   kind                = "elastic"
-  reserved            = true
+  reserved            = false
     sku {
     tier = "WorkflowStandard"
     size = "WS1"
@@ -156,11 +156,16 @@ resource "azurerm_logic_app_standard" "example" {
   storage_account_access_key = azurerm_storage_account.sa.primary_access_key
   app_settings = {
     "FUNCTIONS_WORKER_RUNTIME"     = "node"
-    "WEBSITE_NODE_DEFAULT_VERSION" = "~12"
+    "WEBSITE_NODE_DEFAULT_VERSION" = "~14"
     "WEBSITE_CONTENTOVERVNET"      = "1"
-    "WEBSITE_VNET_ROUTE_ALL"       = "1"
     "SQL_PASSWORD"                 = random_password.password.result
     "sql_connectionString"         = "@Microsoft.KeyVault(VaultName=${azurerm_key_vault.kv.name};SecretName=${azurerm_key_vault_secret.dbconnectionstring.name})"
+  }
+
+  site_config {
+    dotnet_framework_version = "v6.0"
+    use_32_bit_worker_process = true
+    vnet_route_all_enabled = true
   }
 
   identity {
