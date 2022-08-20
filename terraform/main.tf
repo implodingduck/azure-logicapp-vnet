@@ -15,13 +15,18 @@ terraform {
 }
 
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+
 
   subscription_id = var.subscription_id
 }
 
 locals {
-  func_name = "logivnet${random_string.unique.result}"
+  func_name      = "logivnet${random_string.unique.result}"
   loc_for_naming = lower(replace(var.location, " ", ""))
   tags = {
     "managed_by" = "terraform"
@@ -46,7 +51,7 @@ data "azurerm_client_config" "current" {}
 data "azurerm_log_analytics_workspace" "default" {
   name                = "DefaultWorkspace-${data.azurerm_client_config.current.subscription_id}-EUS"
   resource_group_name = "DefaultResourceGroup-EUS"
-} 
+}
 
 resource "azurerm_virtual_network" "default" {
   name                = "vnet-${local.func_name}-${local.loc_for_naming}"
@@ -58,20 +63,20 @@ resource "azurerm_virtual_network" "default" {
 }
 
 resource "azurerm_subnet" "pe" {
-  name                  = "snet-privateendpoints-${local.loc_for_naming}"
-  resource_group_name   = azurerm_virtual_network.default.resource_group_name
-  virtual_network_name  = azurerm_virtual_network.default.name
-  address_prefixes      = ["10.4.0.0/26"]
+  name                 = "snet-privateendpoints-${local.loc_for_naming}"
+  resource_group_name  = azurerm_virtual_network.default.resource_group_name
+  virtual_network_name = azurerm_virtual_network.default.name
+  address_prefixes     = ["10.4.0.0/26"]
 
   enforce_private_link_endpoint_network_policies = true
 
 }
 
 resource "azurerm_subnet" "logicapps" {
-  name                  = "snet-logicapps-${local.loc_for_naming}"
-  resource_group_name   = azurerm_virtual_network.default.resource_group_name
-  virtual_network_name  = azurerm_virtual_network.default.name
-  address_prefixes      = ["10.4.0.64/26"]
+  name                 = "snet-logicapps-${local.loc_for_naming}"
+  resource_group_name  = azurerm_virtual_network.default.resource_group_name
+  virtual_network_name = azurerm_virtual_network.default.name
+  address_prefixes     = ["10.4.0.64/26"]
   service_endpoints = [
     "Microsoft.Web",
     "Microsoft.Storage"
@@ -82,25 +87,28 @@ resource "azurerm_subnet" "logicapps" {
       name = "Microsoft.Web/serverFarms"
     }
   }
-  
 
- 
+
+
 }
 
 
 resource "azurerm_private_dns_zone" "blob" {
-  name                      = "privatelink.blob.core.windows.net"
-  resource_group_name       = azurerm_resource_group.rg.name
+  name                = "privatelink.blob.core.windows.net"
+  resource_group_name = azurerm_resource_group.rg.name
 }
 
 resource "azurerm_private_dns_zone" "file" {
-  name                      = "privatelink.file.core.windows.net"
-  resource_group_name       = azurerm_resource_group.rg.name
+  name                = "privatelink.file.core.windows.net"
+  resource_group_name = azurerm_resource_group.rg.name
 }
 
 
 
 resource "azurerm_private_endpoint" "pe" {
+  depends_on = [
+    azurerm_app_service_virtual_network_swift_connection.example
+  ]
   name                = "pe-sa${local.func_name}"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
@@ -119,6 +127,9 @@ resource "azurerm_private_endpoint" "pe" {
 }
 
 resource "azurerm_private_endpoint" "pe-file" {
+  depends_on = [
+    azurerm_app_service_virtual_network_swift_connection.example
+  ]
   name                = "pe-sa${local.func_name}-file"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
@@ -153,7 +164,7 @@ resource "azurerm_storage_account_network_rules" "fw" {
   ]
   storage_account_id = azurerm_storage_account.sa.id
 
-  default_action             = "Deny"
+  default_action = "Deny"
 
   virtual_network_subnet_ids = [azurerm_subnet.logicapps.id]
 }
@@ -164,7 +175,7 @@ resource "azurerm_app_service_plan" "asp" {
   location            = azurerm_resource_group.rg.location
   kind                = "elastic"
   reserved            = false
-    sku {
+  sku {
     tier = "WorkflowStandard"
     size = "WS1"
   }
@@ -183,6 +194,7 @@ resource "azurerm_logic_app_standard" "example" {
     "WEBSITE_NODE_DEFAULT_VERSION" = "~14"
     "SQL_PASSWORD"                 = random_password.password.result
     "sql_connectionString"         = "@Microsoft.KeyVault(VaultName=${azurerm_key_vault.kv.name};SecretName=${azurerm_key_vault_secret.dbconnectionstring.name})"
+    "WEBSITE_CONTENTOVERVNET"      = "1"
   }
 
   site_config {
@@ -211,17 +223,17 @@ resource "azurerm_key_vault" "kv" {
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
-  purge_protection_enabled = false
+  purge_protection_enabled   = false
 
 
-    
+
   tags = local.tags
 }
 
 resource "azurerm_key_vault_access_policy" "client-config" {
   key_vault_id = azurerm_key_vault.kv.id
-  tenant_id = data.azurerm_client_config.current.tenant_id
-  object_id = data.azurerm_client_config.current.object_id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
     "Create",
@@ -250,8 +262,8 @@ resource "azurerm_key_vault_access_policy" "client-config" {
 
 resource "azurerm_key_vault_access_policy" "la" {
   key_vault_id = azurerm_key_vault.kv.id
-  tenant_id = data.azurerm_client_config.current.tenant_id
-  object_id = azurerm_logic_app_standard.example.identity.0.principal_id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = azurerm_logic_app_standard.example.identity.0.principal_id
   secret_permissions = [
     "Get",
     "List"
@@ -301,7 +313,7 @@ resource "azurerm_mssql_database" "db" {
   auto_pause_delay_in_minutes = -1
   min_capacity                = 1
   sku_name                    = "GP_S_Gen5_1"
-  tags = local.tags
+  tags                        = local.tags
   short_term_retention_policy {
     retention_days = 7
   }

@@ -1,5 +1,5 @@
 variable "subscription_id" {
-  type = string
+  type      = string
   sensitive = true
 }
 
@@ -8,7 +8,7 @@ variable "resource_group_name" {
 }
 
 variable "storage_account_name" {
-  type = string
+  type      = string
   sensitive = true
 }
 
@@ -21,6 +21,6 @@ variable "container_name" {
 }
 
 variable "location" {
-  type = string
+  type    = string
   default = "East US"
 }
