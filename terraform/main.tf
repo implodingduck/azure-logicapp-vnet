@@ -105,47 +105,47 @@ resource "azurerm_private_dns_zone" "file" {
 
 
 
-# resource "azurerm_private_endpoint" "pe" {
-#   depends_on = [
-#     azurerm_app_service_virtual_network_swift_connection.example
-#   ]
-#   name                = "pe-sa${local.func_name}"
-#   location            = azurerm_resource_group.rg.location
-#   resource_group_name = azurerm_resource_group.rg.name
-#   subnet_id           = azurerm_subnet.pe.id
+resource "azurerm_private_endpoint" "pe" {
+  depends_on = [
+    azurerm_app_service_virtual_network_swift_connection.example
+  ]
+  name                = "pe-sa${local.func_name}"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  subnet_id           = azurerm_subnet.pe.id
 
-#   private_service_connection {
-#     name                           = "pe-connection-sa${local.func_name}"
-#     private_connection_resource_id = azurerm_storage_account.sa.id
-#     is_manual_connection           = false
-#     subresource_names              = ["blob"]
-#   }
-#   private_dns_zone_group {
-#     name                 = azurerm_private_dns_zone.blob.name
-#     private_dns_zone_ids = [azurerm_private_dns_zone.blob.id]
-#   }
-# }
+  private_service_connection {
+    name                           = "pe-connection-sa${local.func_name}"
+    private_connection_resource_id = azurerm_storage_account.sa.id
+    is_manual_connection           = false
+    subresource_names              = ["blob"]
+  }
+  private_dns_zone_group {
+    name                 = azurerm_private_dns_zone.blob.name
+    private_dns_zone_ids = [azurerm_private_dns_zone.blob.id]
+  }
+}
 
-# resource "azurerm_private_endpoint" "pe-file" {
-#   depends_on = [
-#     azurerm_app_service_virtual_network_swift_connection.example
-#   ]
-#   name                = "pe-sa${local.func_name}-file"
-#   location            = azurerm_resource_group.rg.location
-#   resource_group_name = azurerm_resource_group.rg.name
-#   subnet_id           = azurerm_subnet.pe.id
+resource "azurerm_private_endpoint" "pe-file" {
+  depends_on = [
+    azurerm_app_service_virtual_network_swift_connection.example
+  ]
+  name                = "pe-sa${local.func_name}-file"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  subnet_id           = azurerm_subnet.pe.id
 
-#   private_service_connection {
-#     name                           = "pe-connection-sa${local.func_name}-file"
-#     private_connection_resource_id = azurerm_storage_account.sa.id
-#     is_manual_connection           = false
-#     subresource_names              = ["file"]
-#   }
-#   private_dns_zone_group {
-#     name                 = azurerm_private_dns_zone.file.name
-#     private_dns_zone_ids = [azurerm_private_dns_zone.file.id]
-#   }
-# }
+  private_service_connection {
+    name                           = "pe-connection-sa${local.func_name}-file"
+    private_connection_resource_id = azurerm_storage_account.sa.id
+    is_manual_connection           = false
+    subresource_names              = ["file"]
+  }
+  private_dns_zone_group {
+    name                 = azurerm_private_dns_zone.file.name
+    private_dns_zone_ids = [azurerm_private_dns_zone.file.id]
+  }
+}
 
 resource "azurerm_storage_account" "sa" {
   name                     = "sa${local.func_name}"
