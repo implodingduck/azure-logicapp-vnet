@@ -211,7 +211,7 @@ resource "azurerm_logic_app_standard" "example" {
     "WEBSITE_NODE_DEFAULT_VERSION" = "~14"
     "SQL_PASSWORD"                 = random_password.password.result
     "sql_connectionString"         = "@Microsoft.KeyVault(VaultName=${azurerm_key_vault.kv.name};SecretName=${azurerm_key_vault_secret.dbconnectionstring.name})"
-    #"WEBSITE_CONTENTOVERVNET"      = "1"
+    "WEBSITE_CONTENTOVERVNET"      = "1"
   }
 
   site_config {
