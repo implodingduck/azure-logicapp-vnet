@@ -93,6 +93,12 @@ resource "azurerm_private_dns_zone" "blob" {
   resource_group_name       = azurerm_resource_group.rg.name
 }
 
+resource "azurerm_private_dns_zone" "file" {
+  name                      = "privatelink.file.core.windows.net"
+  resource_group_name       = azurerm_resource_group.rg.name
+}
+
+
 
 resource "azurerm_private_endpoint" "pe" {
   name                = "pe-sa${local.func_name}"
@@ -109,6 +115,24 @@ resource "azurerm_private_endpoint" "pe" {
   private_dns_zone_group {
     name                 = azurerm_private_dns_zone.blob.name
     private_dns_zone_ids = [azurerm_private_dns_zone.blob.id]
+  }
+}
+
+resource "azurerm_private_endpoint" "pe-file" {
+  name                = "pe-sa${local.func_name}-file"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  subnet_id           = azurerm_subnet.pe.id
+
+  private_service_connection {
+    name                           = "pe-connection-sa${local.func_name}-file"
+    private_connection_resource_id = azurerm_storage_account.sa.id
+    is_manual_connection           = false
+    subresource_names              = ["file"]
+  }
+  private_dns_zone_group {
+    name                 = azurerm_private_dns_zone.file.name
+    private_dns_zone_ids = [azurerm_private_dns_zone.file.id]
   }
 }
 
