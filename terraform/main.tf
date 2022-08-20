@@ -8,6 +8,10 @@ terraform {
       source  = "hashicorp/random"
       version = "=3.1.0"
     }
+    azapi = {
+      source  = "Azure/azapi"
+      version = "0.5.0"
+    }
   }
   backend "azurerm" {
 
@@ -158,15 +162,28 @@ resource "azurerm_storage_account" "sa" {
   tags = local.tags
 }
 
-resource "azurerm_storage_account_network_rules" "fw" {
+# resource "azurerm_storage_account_network_rules" "fw" {
+#   depends_on = [
+#     azurerm_app_service_virtual_network_swift_connection.example
+#   ]
+#   storage_account_id = azurerm_storage_account.sa.id
+
+#   default_action = "Deny"
+
+#   #virtual_network_subnet_ids = [azurerm_subnet.logicapps.id]
+# }
+resource "azapi_update_resource" "update_sa_fw" {
   depends_on = [
     azurerm_app_service_virtual_network_swift_connection.example
   ]
-  storage_account_id = azurerm_storage_account.sa.id
+  type        = "Microsoft.Storage/storageAccounts@2021-09-01"
+  resource_id = azurerm_storage_account.sa.id
 
-  default_action = "Deny"
-
-  #virtual_network_subnet_ids = [azurerm_subnet.logicapps.id]
+  body = jsonencode({
+    properties = {
+      publicNetworkAccess = "Disabled"
+    }
+  })
 }
 
 resource "azurerm_app_service_plan" "asp" {
