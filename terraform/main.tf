@@ -157,15 +157,15 @@ resource "azurerm_logic_app_standard" "example" {
   app_settings = {
     "FUNCTIONS_WORKER_RUNTIME"     = "node"
     "WEBSITE_NODE_DEFAULT_VERSION" = "~14"
-    "WEBSITE_CONTENTOVERVNET"      = "1"
     "SQL_PASSWORD"                 = random_password.password.result
     "sql_connectionString"         = "@Microsoft.KeyVault(VaultName=${azurerm_key_vault.kv.name};SecretName=${azurerm_key_vault_secret.dbconnectionstring.name})"
   }
 
   site_config {
-    dotnet_framework_version = "v6.0"
+    dotnet_framework_version  = "v6.0"
     use_32_bit_worker_process = true
-    vnet_route_all_enabled = true
+    vnet_route_all_enabled    = true
+    ftps_state                = "Disabled"
   }
 
   identity {
