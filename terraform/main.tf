@@ -151,6 +151,22 @@ resource "azurerm_private_endpoint" "pe-file" {
   }
 }
 
+resource "azurerm_private_dns_zone_virtual_network_link" "blob" {
+  name                  = "pdns-blob"
+  resource_group_name   = azurerm_resource_group.rg.name
+  private_dns_zone_name = azurerm_private_dns_zone.blob.name
+  virtual_network_id    = azurerm_virtual_network.default.id
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "file" {
+  name                  = "pdns-file"
+  resource_group_name   = azurerm_resource_group.rg.name
+  private_dns_zone_name = azurerm_private_dns_zone.file.name
+  virtual_network_id    = azurerm_virtual_network.default.id
+}
+
+
+
 resource "azurerm_storage_account" "sa" {
   name                     = "sa${local.func_name}"
   resource_group_name      = azurerm_resource_group.rg.name
