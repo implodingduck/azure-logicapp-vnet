@@ -250,9 +250,17 @@ resource "azurerm_logic_app_standard" "example" {
   tags = local.tags
 }
 
+data "azapi_resource" "appsettings" {
+  type                   = "Microsoft.Web/sites/config@2022-03-01"
+  parent_id              = azurerm_logic_app_standard.example.id
+  name                   = "appsettings"
+  response_export_values = ["*"]
+}
+
+
 data "azapi_resource_action" "list" {
   type                   = "Microsoft.Web/sites/config@2022-03-01"
-  resource_id            = azurerm_logic_app_standard.example.id
+  resource_id            = data.azapi_resource.appsettings.id
   action                 = "list"
   method                 = "POST"
   response_export_values = ["*"]
@@ -264,7 +272,7 @@ resource "azapi_resource_action" "update" {
     azurerm_private_endpoint.pe-file,
   ]
   type        = "Microsoft.Web/sites/config@2022-03-01"
-  resource_id = azurerm_logic_app_standard.example.id
+  resource_id = data.azapi_resource.appsettings.id
   method      = "PUT"
   body = jsonencode({
     name = "appsettings"
