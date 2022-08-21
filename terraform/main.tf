@@ -264,7 +264,7 @@ resource "azapi_resource_action" "update" {
     azurerm_private_endpoint.pe-file,
   ]
   type        = "Microsoft.Web/sites/config@2022-03-01"
-  resource_id = data.azapi_resource.appsettings.id
+  resource_id = azurerm_logic_app_standard.example.id
   method      = "PUT"
   body = jsonencode({
     name = "appsettings"
