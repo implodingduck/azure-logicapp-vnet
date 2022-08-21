@@ -110,6 +110,9 @@ resource "azurerm_private_dns_zone" "file" {
 
 
 resource "azurerm_private_endpoint" "pe" {
+  depends_on = [
+    azurerm_app_service_virtual_network_swift_connection.example
+  ]
   name                = "pe-sa${local.func_name}"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
@@ -128,6 +131,9 @@ resource "azurerm_private_endpoint" "pe" {
 }
 
 resource "azurerm_private_endpoint" "pe-file" {
+  depends_on = [
+    azurerm_app_service_virtual_network_swift_connection.example
+  ]
   name                = "pe-sa${local.func_name}-file"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
@@ -207,28 +213,20 @@ resource "azurerm_application_insights" "app" {
   workspace_id        = data.azurerm_log_analytics_workspace.default.id
 }
 
-resource "azurerm_app_service_plan" "asp" {
+resource "azurerm_service_plan" "asp" {
   name                = "asp-${local.func_name}"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
-  kind                = "elastic"
-  reserved            = false
-  sku {
-    tier = "WorkflowStandard"
-    size = "WS1"
-  }
+  os_type             = "Windows"
+  sku_name            = "WS1"
   tags = local.tags
 }
 
 resource "azurerm_logic_app_standard" "example" {
-  depends_on = [
-    azurerm_private_endpoint.pe,
-    azurerm_private_endpoint.pe-file
-  ]
   name                       = "la-${local.func_name}"
   location                   = azurerm_resource_group.rg.location
   resource_group_name        = azurerm_resource_group.rg.name
-  app_service_plan_id        = azurerm_app_service_plan.asp.id
+  app_service_plan_id        = azurerm_service_plan.asp.id
   storage_account_name       = azurerm_storage_account.sa.name
   storage_account_access_key = azurerm_storage_account.sa.primary_access_key
   app_settings = {
@@ -237,7 +235,6 @@ resource "azurerm_logic_app_standard" "example" {
     "WEBSITE_NODE_DEFAULT_VERSION"   = "~14"
     "SQL_PASSWORD"                   = random_password.password.result
     "sql_connectionString"           = "@Microsoft.KeyVault(VaultName=${azurerm_key_vault.kv.name};SecretName=${azurerm_key_vault_secret.dbconnectionstring.name})"
-    "WEBSITE_CONTENTOVERVNET"        = "1"
   }
 
   site_config {
@@ -252,6 +249,36 @@ resource "azurerm_logic_app_standard" "example" {
   }
   tags = local.tags
 }
+
+data "azapi_resource_action" "list" {
+  type                   = "Microsoft.Web/sites/config@2022-03-01"
+  resource_id            = azurerm_logic_app_standard.example.id
+  action                 = "list"
+  method                 = "POST"
+  response_export_values = ["*"]
+}
+
+resource "azapi_resource_action" "update" {
+  depends_on = [
+    azurerm_private_endpoint.pe,
+    azurerm_private_endpoint.pe-file,
+  ]
+  type        = "Microsoft.Web/sites/config@2022-03-01"
+  resource_id = data.azapi_resource.appsettings.id
+  method      = "PUT"
+  body = jsonencode({
+    name = "appsettings"
+    // use merge function to combine new settings with existing ones
+    properties = merge(
+      jsondecode(data.azapi_resource_action.list.output).properties,
+      {
+        WEBSITE_CONTENTOVERVNET = "1"
+      }
+    )
+  })
+  response_export_values = ["*"]
+}
+
 
 
 resource "azurerm_app_service_virtual_network_swift_connection" "example" {
