@@ -110,9 +110,6 @@ resource "azurerm_private_dns_zone" "file" {
 
 
 resource "azurerm_private_endpoint" "pe" {
-  depends_on = [
-    azurerm_app_service_virtual_network_swift_connection.example
-  ]
   name                = "pe-sa${local.func_name}"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
@@ -131,9 +128,6 @@ resource "azurerm_private_endpoint" "pe" {
 }
 
 resource "azurerm_private_endpoint" "pe-file" {
-  depends_on = [
-    azurerm_app_service_virtual_network_swift_connection.example
-  ]
   name                = "pe-sa${local.func_name}-file"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
@@ -181,8 +175,8 @@ resource "azurerm_storage_account" "sa" {
 resource "azurerm_storage_account_network_rules" "fw" {
   depends_on = [
     azurerm_app_service_virtual_network_swift_connection.example,
-    azurerm_private_dns_zone_virtual_network_link.file,
-    azurerm_private_dns_zone_virtual_network_link.blob
+    azurerm_private_endpoint.pe,
+    azurerm_private_endpoint.pe-file,
 
   ]
   storage_account_id = azurerm_storage_account.sa.id
@@ -227,6 +221,10 @@ resource "azurerm_app_service_plan" "asp" {
 }
 
 resource "azurerm_logic_app_standard" "example" {
+  depends_on = [
+    azurerm_private_endpoint.pe,
+    azurerm_private_endpoint.pe-file
+  ]
   name                       = "la-${local.func_name}"
   location                   = azurerm_resource_group.rg.location
   resource_group_name        = azurerm_resource_group.rg.name
