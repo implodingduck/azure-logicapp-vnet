@@ -72,7 +72,7 @@ resource "azurerm_subnet" "pe" {
   virtual_network_name = azurerm_virtual_network.default.name
   address_prefixes     = ["10.4.0.0/26"]
 
-  enforce_private_link_endpoint_network_policies = true
+  private_endpoint_network_policies_enabled = true
 
 }
 
