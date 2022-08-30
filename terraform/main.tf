@@ -233,8 +233,8 @@ resource "azurerm_logic_app_standard" "example" {
     "APPINSIGHTS_INSTRUMENTATIONKEY" = azurerm_application_insights.app.instrumentation_key
     "FUNCTIONS_WORKER_RUNTIME"       = "node"
     "WEBSITE_NODE_DEFAULT_VERSION"   = "~14"
-    "SQL_PASSWORD"                   = random_password.password.result
-    "sql_connectionString"           = "@Microsoft.KeyVault(VaultName=${azurerm_key_vault.kv.name};SecretName=${azurerm_key_vault_secret.dbconnectionstring.name})"
+    #"SQL_PASSWORD"                   = random_password.password.result
+    #"sql_connectionString"           = "@Microsoft.KeyVault(VaultName=${azurerm_key_vault.kv.name};SecretName=${azurerm_key_vault_secret.dbconnectionstring.name})"
   }
 
   site_config {
@@ -363,57 +363,57 @@ resource "azurerm_key_vault_secret" "dbpassword" {
   key_vault_id = azurerm_key_vault.kv.id
 }
 
-resource "azurerm_key_vault_secret" "dbconnectionstring" {
-  depends_on = [
-    azurerm_key_vault_access_policy.client-config
-  ]
-  name         = "dbconnectionstring"
-  value        = "Server=tcp:${azurerm_mssql_server.db.fully_qualified_domain_name},1433;Initial Catalog=${azurerm_mssql_database.db.name};Persist Security Info=False;User ID=sqladmin;Password=${random_password.password.result};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
-  key_vault_id = azurerm_key_vault.kv.id
-}
+# resource "azurerm_key_vault_secret" "dbconnectionstring" {
+#   depends_on = [
+#     azurerm_key_vault_access_policy.client-config
+#   ]
+#   name         = "dbconnectionstring"
+#   value        = "Server=tcp:${azurerm_mssql_server.db.fully_qualified_domain_name},1433;Initial Catalog=${azurerm_mssql_database.db.name};Persist Security Info=False;User ID=sqladmin;Password=${random_password.password.result};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+#   key_vault_id = azurerm_key_vault.kv.id
+# }
 
-resource "azurerm_mssql_server" "db" {
-  name                         = "${local.func_name}-server"
-  resource_group_name          = azurerm_resource_group.rg.name
-  location                     = azurerm_resource_group.rg.location
-  version                      = "12.0"
-  administrator_login          = "sqladmin"
-  administrator_login_password = random_password.password.result
-  minimum_tls_version          = "1.2"
+# resource "azurerm_mssql_server" "db" {
+#   name                         = "${local.func_name}-server"
+#   resource_group_name          = azurerm_resource_group.rg.name
+#   location                     = azurerm_resource_group.rg.location
+#   version                      = "12.0"
+#   administrator_login          = "sqladmin"
+#   administrator_login_password = random_password.password.result
+#   minimum_tls_version          = "1.2"
 
-  tags = local.tags
-}
+#   tags = local.tags
+# }
 
-resource "azurerm_mssql_database" "db" {
-  name                        = "${local.func_name}db"
-  server_id                   = azurerm_mssql_server.db.id
-  max_size_gb                 = 40
-  auto_pause_delay_in_minutes = -1
-  min_capacity                = 1
-  sku_name                    = "GP_S_Gen5_1"
-  tags                        = local.tags
-  short_term_retention_policy {
-    retention_days = 7
-  }
-}
+# resource "azurerm_mssql_database" "db" {
+#   name                        = "${local.func_name}db"
+#   server_id                   = azurerm_mssql_server.db.id
+#   max_size_gb                 = 40
+#   auto_pause_delay_in_minutes = -1
+#   min_capacity                = 1
+#   sku_name                    = "GP_S_Gen5_1"
+#   tags                        = local.tags
+#   short_term_retention_policy {
+#     retention_days = 7
+#   }
+# }
 
-resource "azurerm_mssql_firewall_rule" "azureservices" {
-  name             = "azureservices"
-  server_id        = azurerm_mssql_server.db.id
-  start_ip_address = "0.0.0.0"
-  end_ip_address   = "0.0.0.0"
-}
+# resource "azurerm_mssql_firewall_rule" "azureservices" {
+#   name             = "azureservices"
+#   server_id        = azurerm_mssql_server.db.id
+#   start_ip_address = "0.0.0.0"
+#   end_ip_address   = "0.0.0.0"
+# }
 
-resource "azurerm_mssql_firewall_rule" "vnet" {
-  name             = "vnet"
-  server_id        = azurerm_mssql_server.db.id
-  start_ip_address = "10.4.0.0"
-  end_ip_address   = "10.4.0.255"
-}
+# resource "azurerm_mssql_firewall_rule" "vnet" {
+#   name             = "vnet"
+#   server_id        = azurerm_mssql_server.db.id
+#   start_ip_address = "10.4.0.0"
+#   end_ip_address   = "10.4.0.255"
+# }
 
-resource "azurerm_mssql_firewall_rule" "allthethings" {
-  name             = "allthethings"
-  server_id        = azurerm_mssql_server.db.id
-  start_ip_address = "0.0.0.0"
-  end_ip_address   = "255.255.255.255"
-}
+# resource "azurerm_mssql_firewall_rule" "allthethings" {
+#   name             = "allthethings"
+#   server_id        = azurerm_mssql_server.db.id
+#   start_ip_address = "0.0.0.0"
+#   end_ip_address   = "255.255.255.255"
+# }
