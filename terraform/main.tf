@@ -2,7 +2,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=3.19.1"
+      version = "=3.36.0"
     }
     random = {
       source  = "hashicorp/random"
@@ -242,6 +242,7 @@ resource "azurerm_logic_app_standard" "example" {
     use_32_bit_worker_process = true
     vnet_route_all_enabled    = true
     ftps_state                = "Disabled"
+    elastic_instance_minimum  = "1"
   }
 
   identity {
