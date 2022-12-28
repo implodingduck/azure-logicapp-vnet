@@ -1,0 +1,111 @@
+{
+    "definition": {
+        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        "actions": {
+            "HTTP": {
+                "inputs": {
+                    "authentication": {
+                        "audience": "https://storage.azure.com",
+                        "type": "ManagedServiceIdentity"
+                    },
+                    "headers": {
+                        "x-ms-date": "@variables('now')",
+                        "x-ms-version": "@variables('version')"
+                    },
+                    "method": "GET",
+                    "queries": {
+                        "comp": "metadata"
+                    },
+                    "uri": "https://REPLACEME.blob.core.windows.net/test/swagger.json"
+                },
+                "runAfter": {
+                    "Initialize_variable": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "Http"
+            },
+            "HTTP_2": {
+                "inputs": {
+                    "authentication": {
+                        "audience": "https://storage.azure.com",
+                        "type": "ManagedServiceIdentity"
+                    },
+                    "headers": {
+                        "x-ms-date": "@variables('now')",
+                        "x-ms-meta-AuditID": "1234567",
+                        "x-ms-version": "@variables('version')"
+                    },
+                    "method": "PUT",
+                    "queries": {
+                        "comp": "metadata"
+                    },
+                    "uri": "https://REPLACEME.blob.core.windows.net/test/swagger.json"
+                },
+                "runAfter": {
+                    "HTTP": [
+                        "Succeeded",
+                        "FAILED",
+                        "TIMEDOUT"
+                    ]
+                },
+                "type": "Http"
+            },
+            "Initialize_variable": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "now",
+                            "type": "string",
+                            "value": "@{utcNow('r')}"
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "Initialize_variable_2": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "InitializeVariable"
+            },
+            "Initialize_variable_2": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "version",
+                            "type": "string",
+                            "value": "2021-08-06"
+                        }
+                    ]
+                },
+                "runAfter": {},
+                "type": "InitializeVariable"
+            },
+            "Response": {
+                "inputs": {
+                    "body": "Done! @{variables('now')}\nGet  Metadata:\n@{outputs('HTTP')['statusCode']}\n@{outputs('HTTP')['headers']}\n@{body('HTTP')}\nSet Metadata:\n@{outputs('HTTP_2')['statusCode']}\n@{outputs('HTTP_2')['headers']}\n@{body('HTTP_2')}\n",
+                    "statusCode": 200
+                },
+                "kind": "http",
+                "runAfter": {
+                    "HTTP_2": [
+                        "Succeeded",
+                        "FAILED",
+                        "TIMEDOUT"
+                    ]
+                },
+                "type": "Response"
+            }
+        },
+        "contentVersion": "1.0.0.0",
+        "outputs": {},
+        "triggers": {
+            "manual": {
+                "inputs": {},
+                "kind": "Http",
+                "type": "Request"
+            }
+        }
+    },
+    "kind": "Stateful"
+}
